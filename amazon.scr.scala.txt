@@ -1,0 +1,16 @@
+val getPg = io.Source.fromURL( _ : String ).getLines
+val urls = (1 to 5).map ( x => """http://www.amazon.com/best-sellers-books-Amazon/zgbs/books/ref=zg_bs_books_pg_""" + x + """?_encoding=UTF8&pg=""" + x ).toList
+val htmls = urls.map(getPg)
+val books = htmls.flatMap( _.filter( x=>x.startsWith("http")))
+val bs = books.distinct
+
+
+
+http://www.amazon.com/Killing-Jesus-Bill-OReilly/product-reviews/0805098542/ref=cm_cr_pr_top_link_next_4?ie=UTF8&pageNumber=4&showViewpoints=0&sortBy=byRankDescending
+
+
+def forAny[A]( xs : Iterator[A], f : A=>Boolean ) = xs.foldLeft(false)( (acc,x) => acc || f(x) )
+val anyContains = ( x : String ) => forAny[String]( _ : Iterator[String], (y:String)=>y.contains(x) )
+val f = anyContains("released on")
+
+val isNR = bs.map(getPg andThen f)
