@@ -1,4 +1,14 @@
 
+def using[A <: {def close(): Unit}, B](param: A)(f: A => B): B =
+try { f(param) } finally { param.close() }
+
+def appendToFile(fileName:String, textData:String) =
+  using (new java.io.FileWriter(fileName, true)) { 
+    fileWriter => using (new java.io.PrintWriter(fileWriter)) {
+      printWriter => printWriter.println(textData)
+    }
+  }
+
 val url = """http://www.amazon.com/Killing-Jesus-Bill-OReilly/product-reviews/0805098542/ref=dp_top_cm_cr_acr_txt?showViewpoints=1"""
 
 def getReviews( stream : Stream[String] )( implicit acc : List[(String,String)] = List() )
@@ -48,5 +58,16 @@ def getAllReviews( stream : Stream[String] )(implicit acc : List[(String,String)
 	}
 }
 
+def hasReviews( stream : Stream[String] ) : Boolean =
+{
+	!stream.foldLeft(false)((acc,e) => acc || e.contains("There are no customer reviews yet"))
+}
 
-			
+
+def getBSReviews( bs : List[String] ) = {
+  
+  val rfn : Stream[String] => List[(String,String)]= (x:Stream[String]) => if(hasReviews(x)) getAllReviews(x) else List() 
+  val fn = getPg andThen(_.toStream) andThen rfn
+  bs.map( x=> { val r = fn(x); r.foreach( y=>appendToFile(loc, y._1 +":"+ y._2) ); r } )
+
+}
