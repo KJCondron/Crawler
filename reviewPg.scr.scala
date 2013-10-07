@@ -68,6 +68,6 @@ def getBSReviews( bs : List[String] ) = {
   
   val rfn : Stream[String] => List[(String,String)]= (x:Stream[String]) => if(hasReviews(x)) getAllReviews(x) else List() 
   val fn = getPg andThen(_.toStream) andThen rfn
-  bs.map( x=> { val r = fn(x); r.foreach( y=>appendToFile(loc, y._1 +":"+ y._2) ); r } )
+  bs.map( x=> { appendToFile(loc, x); val r = fn(x); r.foreach( y=>appendToFile(loc, y._1 +":"+ y._2) ); r } )
 
 }
