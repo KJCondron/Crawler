@@ -14,24 +14,29 @@ val url = """http://www.amazon.com/Killing-Jesus-Bill-OReilly/product-reviews/08
 def getReviews( stream : Stream[String] )( implicit acc : List[(String,String)] = List() )
 	: List[(String,String)] = {
 	if(stream.isEmpty) acc else {
-		val nStream = stream.dropWhile(!_.contains("name"))
-		if(nStream.isEmpty) acc else {
-			val nm = nStream.head.dropWhile(_!='=').drop(2).takeWhile(_!='"')
-			val sStream = nStream.dropWhile(!_.contains("out of 5 stars"))
-			if(sStream.isEmpty) acc else {
-				val scrTxt = sStream.head
-				val idx = scrTxt.indexOf("title") + 7
-				val scr = scrTxt.substring( idx, idx +3 )
+		try { 
+			val nStream = stream.dropWhile(!_.contains("name"))
+			if(nStream.isEmpty) acc else {
+				val nm = nStream.head.dropWhile(_!='=').drop(2).takeWhile(_!='"')
+				val sStream = nStream.dropWhile(!_.contains("out of 5 stars"))
+				if(sStream.isEmpty) acc else {
+					val scrTxt = sStream.head
+					val idx = scrTxt.indexOf("title") + 7
+					val scr = scrTxt.substring( idx, idx +3 )
 
-				val pStream = sStream.dropWhile(!_.contains("profile"))
-				if (pStream.isEmpty) acc else {
-					val profileTxt = pStream.head
-					val idx = profileTxt.indexOf("profile") + 8
-					val profile = profileTxt.drop(idx).takeWhile(_!='>')
-					val newStream = pStream.dropWhile(!_.contains("comment"))
-					getReviews(newStream)( (profile,scr) :: acc )
+					val pStream = sStream.dropWhile(!_.contains("profile"))
+					if (pStream.isEmpty) acc else {
+						val profileTxt = pStream.head
+						val idx = profileTxt.indexOf("profile") + 8
+						val profile = profileTxt.drop(idx).takeWhile(_!='>')
+						val newStream = pStream.dropWhile(!_.contains("comment"))
+						getReviews(newStream)( (profile,scr) :: acc )
+					}
 				}
 			}
+		}
+		catch {
+			case _ : Throwable => List( ("Error", "Error") )
 		}
 	}
 }
